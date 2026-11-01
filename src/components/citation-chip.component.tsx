@@ -36,6 +36,11 @@ const RESOURCE_TYPE_TO_CHART_PAGE: Record<string, string> = {
   medication_dispense: 'Medications',
 };
 
+/** Whether `ref` is a record of one of the patient's ORDERS — any type whose chart page is Orders. */
+export function isOrderRecord(ref: AiReference): boolean {
+  return RESOURCE_TYPE_TO_CHART_PAGE[ref.resourceType?.toLowerCase()] === 'Orders';
+}
+
 /**
  * Where a citation's chip and inline marker navigate to, or null where they must not navigate.
  *

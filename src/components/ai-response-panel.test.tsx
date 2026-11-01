@@ -2893,6 +2893,31 @@ describe('AiResponsePanel record the module attached', () => {
     );
   });
 
+  it('keeps the pill of an attached ORDER record the answer has no marker for', () => {
+    // An interaction finding's record is her order (backend ADR Decision 554), which the answer's
+    // sentence names — "interacts with active order Isoniazid" — so the clinician looks for it among
+    // the references rather than inside the finding's panel.
+    const references = [
+      ...withFinding45Text(),
+      {
+        index: 20,
+        resourceType: 'drug_order',
+        resourceUuid: '6f9a9e11-dd2a-5fe4-a607-fefcd3c0a933',
+        date: null,
+        grounded: null,
+        group: 'chart',
+        source: null,
+        withheldInteractions: 0,
+        attachedByTheModule: true,
+        attachedFor: [45],
+      } as unknown as AiReference,
+    ];
+    renderScreen({ references });
+    expect(within(chipFor('[20]')).getByRole('button', { name: 'source of [45]' })).toBeInTheDocument();
+    // The allergy record beside it still folds, as before.
+    expect(screen.queryByText('[3] allergy')).not.toBeInTheDocument();
+  });
+
   it('keeps the pill of a record the answer itself marks', () => {
     renderScreen({
       references: withFinding45Text(),

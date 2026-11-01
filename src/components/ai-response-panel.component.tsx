@@ -37,6 +37,7 @@ import MarkdownAnswer from './ai-markdown-answer.component';
 import {
   buildReferenceUrl,
   handleReferenceNavigate,
+  isOrderRecord,
   type Translate,
   notGroundedTitle,
   misattributedTitle,
@@ -882,7 +883,9 @@ const AiResponsePanel: React.FC<AiResponsePanelProps> = ({
   // A record the module attached that the answer's prose carries no marker for, keyed to the cited
   // findings it backs: it is drawn inside those findings' panels rather than as a pill of its own,
   // whose "source of" tag existed only to explain it. Only where EVERY finding it backs opens, so
-  // the record is never left with nowhere to be shown.
+  // the record is never left with nowhere to be shown. Never a record of one of her ORDERS: an
+  // interaction finding's record is the order its sentence names ("interacts with active order
+  // Isoniazid", backend ADR Decision 554), so it keeps its own pill among the references.
   const foldedInto = useMemo(() => {
     const folded = new Map<number, number[]>();
     if (isLoading || !answer) return folded;
@@ -893,7 +896,7 @@ const AiResponsePanel: React.FC<AiResponsePanelProps> = ({
     const all = Array.isArray(references) ? references : [];
     for (const ref of all) {
       const findings = attachedForOf(ref, citedFindings);
-      if (findings.length === 0 || marked.has(ref.index)) continue;
+      if (findings.length === 0 || marked.has(ref.index) || isOrderRecord(ref)) continue;
       const opens = findings.every((index) => {
         const finding = all.find((other) => other.index === index);
         return Boolean(finding && openableReferenceText(finding));
