@@ -1571,7 +1571,11 @@ const AiResponsePanel: React.FC<AiResponsePanelProps> = ({
                 </span>
               );
               const stopDate = stopDates.get(ref.index);
-              const sourceOf = attachedForOf(ref, citedFindings);
+              // An ORDER record's tag only says which finding it backs, so it is drawn where the answer
+              // cites several and plain: beside one finding it restates that finding's own pill, and
+              // that pill already opens the finding's text.
+              const orderRecord = isOrderRecord(ref);
+              const sourceOf = orderRecord && citedFindings.size <= 1 ? [] : attachedForOf(ref, citedFindings);
               return (
                 <span key={ref.index} className={styles.referenceItem}>
                   {link}
@@ -1611,7 +1615,7 @@ const AiResponsePanel: React.FC<AiResponsePanelProps> = ({
                       // stay a plain tag, since one click cannot open them all.
                       const finding =
                         sourceOf.length === 1 ? references.find((other) => other.index === sourceOf[0]) : undefined;
-                      if (finding && openableReferenceText(finding)) {
+                      if (finding && !orderRecord && openableReferenceText(finding)) {
                         const findingKey = `${finding.index}:${finding.resourceUuid}`;
                         const findingOpen = openReferenceText === findingKey;
                         return (

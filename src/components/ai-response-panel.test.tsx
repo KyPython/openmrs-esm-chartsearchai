@@ -2893,29 +2893,43 @@ describe('AiResponsePanel record the module attached', () => {
     );
   });
 
-  it('keeps the pill of an attached ORDER record the answer has no marker for', () => {
-    // An interaction finding's record is her order (backend ADR Decision 554), which the answer's
-    // sentence names — "interacts with active order Isoniazid" — so the clinician looks for it among
-    // the references rather than inside the finding's panel.
+  /** An order record the module attached for finding [45], as the backend publishes it
+   *  (backend ADR Decision 554). */
+  const attachedOrder = {
+    index: 20,
+    resourceType: 'drug_order',
+    resourceUuid: '6f9a9e11-dd2a-5fe4-a607-fefcd3c0a933',
+    date: null,
+    grounded: null,
+    group: 'chart',
+    source: null,
+    withheldInteractions: 0,
+    attachedByTheModule: true,
+    attachedFor: [45],
+  } as unknown as AiReference;
+
+  it('keeps the pill of an attached ORDER record the answer has no marker for, untagged beside one finding', () => {
+    // An interaction finding's record is her order, which the answer's sentence names — "interacts
+    // with active order Isoniazid" — so the clinician looks for it among the references rather than
+    // inside the finding's panel. With one cited finding, "source of [45]" restates what the [45]
+    // pill beside it already says, so no tag is drawn.
     const references = [
-      ...withFinding45Text(),
-      {
-        index: 20,
-        resourceType: 'drug_order',
-        resourceUuid: '6f9a9e11-dd2a-5fe4-a607-fefcd3c0a933',
-        date: null,
-        grounded: null,
-        group: 'chart',
-        source: null,
-        withheldInteractions: 0,
-        attachedByTheModule: true,
-        attachedFor: [45],
-      } as unknown as AiReference,
+      ...withFinding45Text().filter((ref) => ref.resourceType !== 'safety_finding' || ref.index === 45),
+      attachedOrder,
     ];
     renderScreen({ references });
-    expect(within(chipFor('[20]')).getByRole('button', { name: 'source of [45]' })).toBeInTheDocument();
+    expect(chipFor('[20]')).toBeInTheDocument();
+    expect(within(chipFor('[20]')).queryByText(/^source of /)).not.toBeInTheDocument();
     // The allergy record beside it still folds, as before.
     expect(screen.queryByText('[3] allergy')).not.toBeInTheDocument();
+  });
+
+  it('tags an attached ORDER record with its finding, as plain text, where the answer cites several', () => {
+    // Beside several findings the tag is what says which one this prescription backs. It opens
+    // nothing: the finding's own pill already does.
+    renderScreen({ references: [...withFinding45Text(), attachedOrder] });
+    expect(within(chipFor('[20]')).getByText('source of [45]')).toBeInTheDocument();
+    expect(within(chipFor('[20]')).queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('keeps the pill of a record the answer itself marks', () => {
