@@ -927,7 +927,7 @@ const AiResponsePanel: React.FC<AiResponsePanelProps> = ({
   );
 
   // The bottom line of an answer (backend ADR Decisions 512, 517, 519): shown, with what the server
-  // publishes under it collapsed as the safety box is (backend ADR Decision 555). Never while
+  // publishes under it collapsed as the safety box is (backend ADR Decision 560). Never while
   // streaming; with no summary the whole answer is shown as before.
   const bottomLine = useMemo(() => {
     if (isLoading || !answer || typeof answerSummary !== 'string' || !answerSummary) return null;
@@ -938,7 +938,7 @@ const AiResponsePanel: React.FC<AiResponsePanelProps> = ({
       ? { summary: answerSummary, details: answer.slice(answerSummary.length + 1) }
       : { summary: answerSummary, details: answer };
   }, [answer, answerSummary, answerDetails, isLoading]);
-  // The summary carries the markers of the lines it states whole (backend ADR Decision 555), so they
+  // The summary carries the markers of the lines it states whole (backend ADR Decision 560), so they
   // render as the citations they are.
   const summaryWithCitations = useMemo(
     () =>

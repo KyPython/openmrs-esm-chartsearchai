@@ -3900,7 +3900,7 @@ describe('AiResponsePanel reference-citation text', () => {
   });
 });
 
-// Backend ADR Decision 555: under the summary the server publishes `answerDetails`, the answer
+// Backend ADR Decision 560: under the summary the server publishes `answerDetails`, the answer
 // without the lines the summary states whole, and the summary carries those lines' markers.
 describe('the details the server publishes under the summary', () => {
   const SENTENCE =

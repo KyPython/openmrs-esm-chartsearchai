@@ -619,7 +619,7 @@ export interface AiSearchResponse {
    */
   answerDetailsStateLimits?: boolean | null;
   /**
-   * What a client shows under `answerSummary` (backend `answerDetails`, ADR Decision 555): `answer`
+   * What a client shows under `answerSummary` (backend `answerDetails`, ADR Decision 560): `answer`
    * without the lines the summary states whole, whose markers the summary then carries. Render it,
    * never re-derive it; an empty string means the summary states everything, so no toggle. `null`
    * exactly where there is no summary; absent from a server that predates it, which a client
