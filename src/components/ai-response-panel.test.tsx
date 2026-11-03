@@ -89,7 +89,7 @@ describe('AiResponsePanel reference links', () => {
   const answer =
     'The patient has lab results [1] and an active order [2]. They have an allergy [3], a condition [4], and a diagnosis [5].';
 
-  it('starts Citation details open when there are no evidence tiles so bundled annotations stay visible', () => {
+  it('starts Citation details collapsed even when there are no evidence tiles, and opens it on click', () => {
     render(
       <AiResponsePanel
         answer={answer}
@@ -101,7 +101,10 @@ describe('AiResponsePanel reference links', () => {
       />,
     );
 
+    expect(screen.queryByText('Evidence Used')).not.toBeInTheDocument();
     const details = screen.getByText('Citation details').closest('details');
+    expect(details).not.toHaveAttribute('open');
+    fireEvent.click(screen.getByText('Citation details'));
     expect(details).toHaveAttribute('open');
     expect(screen.getAllByRole('link')).toHaveLength(10);
 

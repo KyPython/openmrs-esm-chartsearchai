@@ -1505,7 +1505,7 @@ const AiResponsePanel: React.FC<AiResponsePanelProps> = ({
       )}
 
       {shownReferences.length > 0 && (
-        <details open={evidence.length === 0} className={styles.referencesSection}>
+        <details className={styles.referencesSection}>
           <summary className={styles.referencesLabel}>{t('citationDetails', 'Citation details')}</summary>
           <div className={styles.referencesList}>
             {shownReferences.map((ref) => {
