@@ -1587,6 +1587,7 @@ describe('useChartSearchAi answer-limit measurements', () => {
     answeredByTheModule: true,
     answerSummary: 'No rated interactions.',
     answerDetailsStateLimits: true,
+    answerDetails: "Not checked: this patient's conditions (no drug-condition rules are loaded).",
     findingsStatedByTheModule: [55],
     asksWhetherSheHasTakenADrug: true,
   };

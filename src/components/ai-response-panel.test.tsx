@@ -3900,6 +3900,74 @@ describe('AiResponsePanel reference-citation text', () => {
   });
 });
 
+// Backend ADR Decision 555: under the summary the server publishes `answerDetails`, the answer
+// without the lines the summary states whole, and the summary carries those lines' markers.
+describe('the details the server publishes under the summary', () => {
+  const SENTENCE =
+    'This patient has no active medication orders, so the interaction check had none to relate Ibuprofen to';
+  const SUMMARY = SENTENCE + ' [2].';
+  const LIMIT = "Not checked: this patient's conditions (no drug-condition rules are loaded).";
+  const ANSWER = SENTENCE + '. [2]\n' + LIMIT;
+  const references: AiReference[] = [
+    {
+      index: 2,
+      resourceType: 'order',
+      resourceUuid: 'uuid-202',
+      date: '2025-02-20',
+      grounded: null,
+      group: 'chart',
+    },
+  ];
+
+  function renderAnswer(answerDetails: string | null | undefined, answerDetailsStateLimits = true) {
+    return render(
+      <AiResponsePanel
+        answer={ANSWER}
+        answerSummary={SUMMARY}
+        answerDetails={answerDetails}
+        answerDetailsStateLimits={answerDetailsStateLimits}
+        references={references}
+        safetyWarnings={[]}
+        error={null}
+        phase="complete"
+        patientUuid={patientUuid}
+      />,
+    );
+  }
+
+  it('shows the published details under the summary, not the sentence again', () => {
+    renderAnswer(LIMIT);
+    fireEvent.click(screen.getByRole('button', { name: 'Show details and limits' }));
+    expect(screen.getByText(/Not checked: this patient's conditions/)).toBeInTheDocument();
+    expect(screen.getAllByText(/had none to relate Ibuprofen to/)).toHaveLength(1);
+  });
+
+  it("renders the summary's marker as the citation it is", () => {
+    renderAnswer(LIMIT);
+    expect(screen.getByText('[2] order — 2025-02-20').tagName).toBe('A');
+    expect(screen.queryByText(/\[2\]\./)).not.toBeInTheDocument();
+  });
+
+  it('shows no toggle where the summary states everything', () => {
+    renderAnswer('', false);
+    expect(screen.getByText(/had none to relate Ibuprofen to/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Show details/ })).not.toBeInTheDocument();
+  });
+
+  it('collapses as before where a server publishes no details', () => {
+    renderAnswer(undefined);
+    fireEvent.click(screen.getByRole('button', { name: 'Show details and limits' }));
+    expect(screen.getAllByText(/had none to relate Ibuprofen to/)).toHaveLength(2);
+  });
+
+  it('carries the details through the message merge, an empty string included', () => {
+    expect(mergeDisclosure(NO_ANSWER_LIMITS, { answerDetails: LIMIT }).answerDetails).toBe(LIMIT);
+    const blank = mergeDisclosure(NO_ANSWER_LIMITS, { answerDetails: '' });
+    expect(blank.answerDetails).toBe('');
+    expect(mergeDisclosure(blank, { answerDetails: null }).answerDetails).toBe('');
+  });
+});
+
 // Backend ADR Decision 512: a module-composed screen opens with its bottom line, sent apart as
 // `answerSummary`, and the rest of the answer is collapsed under it the way the safety box is.
 describe('an answer that opens with its bottom line', () => {

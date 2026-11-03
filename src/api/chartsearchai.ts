@@ -619,6 +619,14 @@ export interface AiSearchResponse {
    */
   answerDetailsStateLimits?: boolean | null;
   /**
+   * What a client shows under `answerSummary` (backend `answerDetails`, ADR Decision 555): `answer`
+   * without the lines the summary states whole, whose markers the summary then carries. Render it,
+   * never re-derive it; an empty string means the summary states everything, so no toggle. `null`
+   * exactly where there is no summary; absent from a server that predates it, which a client
+   * answers with the old rule — the rest of `answer` where it opens with the summary, else all of it.
+   */
+  answerDetails?: string | null;
+  /**
    * The record numbers of the findings the module's own sentence after a model's answer states
    * (backend ADR Decision 147) — a sentence citing no marker, so this is how a chip is joined to
    * it. `[]` stated none; `null` is no measurement, which is every answer the module wrote.
@@ -663,6 +671,7 @@ export type AiAnswerLimits = Pick<
   | 'answeredByTheModule'
   | 'answerSummary'
   | 'answerDetailsStateLimits'
+  | 'answerDetails'
   | 'findingsStatedByTheModule'
   | 'asksWhetherSheHasTakenADrug'
 >;

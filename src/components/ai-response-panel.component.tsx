@@ -833,6 +833,7 @@ const AiResponsePanel: React.FC<AiResponsePanelProps> = ({
   answeredByTheModule,
   answerSummary,
   answerDetailsStateLimits,
+  answerDetails,
   findingsStatedByTheModule,
   asksWhetherSheHasTakenADrug,
   error,
@@ -925,17 +926,36 @@ const AiResponsePanel: React.FC<AiResponsePanelProps> = ({
     [unstatedSignificanceQualifiers],
   );
 
-  // The bottom line of a module-composed answer (backend ADR Decisions 512, 517, 519): shown, with
-  // the rest of the answer collapsed under it as the safety box is. Never while streaming; with
-  // no summary the whole answer is shown as before.
+  // The bottom line of an answer (backend ADR Decisions 512, 517, 519): shown, with what the server
+  // publishes under it collapsed as the safety box is (backend ADR Decision 555). Never while
+  // streaming; with no summary the whole answer is shown as before.
   const bottomLine = useMemo(() => {
     if (isLoading || !answer || typeof answerSummary !== 'string' || !answerSummary) return null;
-    // The answer's own first line, the rest under it; or a sentence apart from its words (backend
-    // ADR Decision 519), the whole answer under it.
+    // The server's details, never re-derived; from a server that predates them, the answer's own
+    // first line with the rest under it, or a sentence apart from its words with all of it under it.
+    if (typeof answerDetails === 'string') return { summary: answerSummary, details: answerDetails };
     return answer.startsWith(answerSummary + '\n')
       ? { summary: answerSummary, details: answer.slice(answerSummary.length + 1) }
       : { summary: answerSummary, details: answer };
-  }, [answer, answerSummary, isLoading]);
+  }, [answer, answerSummary, answerDetails, isLoading]);
+  // The summary carries the markers of the lines it states whole (backend ADR Decision 555), so they
+  // render as the citations they are.
+  const summaryWithCitations = useMemo(
+    () =>
+      bottomLine
+        ? renderTextWithCitations(bottomLine.summary, {
+            references,
+            patientUuid,
+            t,
+            misattributed,
+            severities,
+            qualified,
+            badged: new Set(),
+            noted: new Set(),
+          })
+        : null,
+    [bottomLine, references, patientUuid, t, misattributed, severities, qualified],
+  );
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   const handleCopy = useCallback(() => {
@@ -1316,21 +1336,26 @@ const AiResponsePanel: React.FC<AiResponsePanelProps> = ({
           ) : bottomLine ? (
             <>
               <p className={styles.answerText}>
-                {bottomLine.summary}{' '}
-                <button
-                  type="button"
-                  className={styles.detailsToggle}
-                  aria-expanded={detailsOpen}
-                  onClick={() => setDetailsOpen((open) => !open)}
-                >
-                  {detailsOpen
-                    ? t('hideDetails', 'Hide details')
-                    : answerDetailsStateLimits === true
-                      ? t('showAnswerDetails', 'Show details and limits')
-                      : t('showDetails', 'Show details')}
-                </button>
+                {summaryWithCitations}
+                {bottomLine.details.trim() && (
+                  <>
+                    {' '}
+                    <button
+                      type="button"
+                      className={styles.detailsToggle}
+                      aria-expanded={detailsOpen}
+                      onClick={() => setDetailsOpen((open) => !open)}
+                    >
+                      {detailsOpen
+                        ? t('hideDetails', 'Hide details')
+                        : answerDetailsStateLimits === true
+                          ? t('showAnswerDetails', 'Show details and limits')
+                          : t('showDetails', 'Show details')}
+                    </button>
+                  </>
+                )}
               </p>
-              {detailsOpen && (
+              {detailsOpen && bottomLine.details.trim() && (
                 <MarkdownAnswer
                   answer={bottomLine.details}
                   references={references}
